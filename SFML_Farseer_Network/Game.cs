@@ -133,7 +133,7 @@ namespace SFML_Farseer_Network
                 {
                     _fps = frameCount;
                     frameCount = 0;
-                    frameTime -= 1;
+                    frameTime = 0;
                 }
             }
         }
