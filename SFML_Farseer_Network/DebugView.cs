@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using SFML.Graphics;
 using SFML.Window;
 using Microsoft.Xna.Framework;
-using FarseerPhysics;
 using FarseerPhysics.Common;
 using FarseerPhysics.Dynamics;
 using SFML_Farseer_Network.Managers;
@@ -16,41 +15,35 @@ namespace SFML_Farseer_Network
     using ShapeType = FarseerPhysics.Collision.Shapes.ShapeType;
     using FTransform = FarseerPhysics.Common.Transform;
 
-    public class DebugView : DebugViewBase
+    public class DebugView
     {
         private Game _game;
         private PhysicsManager _physicsManager;
         private VertexArray _triangleVertices;
         private VertexArray _lineVertices;
+        private Color _staticColor;
+        private Color _dynamicColor;
 
-        public DebugView(Game game, PhysicsManager physicsManager) : base(physicsManager.world)
+        public DebugView(Game game, PhysicsManager physicsManager)
         {
             _game = game;
             _physicsManager = physicsManager;
             _triangleVertices = new VertexArray(PrimitiveType.Triangles);
             _lineVertices = new VertexArray(PrimitiveType.Lines);
+            _staticColor = new Color(50, 150, 50);
+            _dynamicColor = new Color(50, 50, 150);
         }
 
-        private void createColor(float red, float green, float blue, out Color color)
+        public void DrawCircle(Vector2 center, float radius, ref Color color)
         {
-            color = new Color((byte)(255 * red), (byte)(255 * green), (byte)(255 * blue), (byte)255);
-        }
-
-        public override void DrawCircle(Vector2 center, float radius, float red, float blue, float green)
-        {
-            Color color;
             CircleShape circle = new CircleShape(radius);
 
-            createColor(red, green, blue, out color);
             circle.Position = new Vector2f(center.X, center.Y);
             _game.window.Draw(circle);
         }
 
-        public override void DrawPolygon(Vector2[] vertices, int count, float red, float blue, float green, bool closed = true)
+        public void DrawPolygon(Vector2[] vertices, int count, ref Color color, bool closed = true)
         {
-            Color color;
-
-            createColor(red, green, blue, out color);
             if (count == 3)
             {
                 for (int i = 0; i < 3; i++)
@@ -69,31 +62,10 @@ namespace SFML_Farseer_Network
             }
         }
 
-        public override void DrawSegment(Vector2 start, Vector2 end, float red, float blue, float green)
+        public void DrawSegment(Vector2 start, Vector2 end, ref Color color)
         {
-            Color color;
-
-            createColor(red, green, blue, out color);
             _lineVertices.Append(new Vertex(new Vector2f(start.X, start.Y), color));
             _lineVertices.Append(new Vertex(new Vector2f(end.X, end.Y), color));
-        }
-
-        public override void DrawSolidCircle(Vector2 center, float radius, Vector2 axis, float red, float blue, float green)
-        {
-            Color color;
-
-            createColor(red, green, blue, out color);
-            DrawCircle(center, radius, red, blue, green);
-        }
-
-        public override void DrawSolidPolygon(Vector2[] vertices, int count, float red, float blue, float green)
-        {
-            DrawPolygon(vertices, count, red, blue, green);
-        }
-
-        public override void DrawTransform(ref FTransform transform)
-        {
-            throw new NotImplementedException();
         }
 
         public void draw()
@@ -109,7 +81,14 @@ namespace SFML_Farseer_Network
                         FCircleShape circleShape = shape as FCircleShape;
                         Vector2 position = body.GetWorldVector(circleShape.Position);
 
-                        DrawCircle(position, circleShape.Radius, 1f, 1f, 1f);
+                        if (body.BodyType == BodyType.Static)
+                        {
+                            DrawCircle(position, circleShape.Radius, ref _staticColor);
+                        }
+                        else
+                        {
+                            DrawCircle(position, circleShape.Radius, ref _dynamicColor);
+                        }
                     }
                     else if (shape.ShapeType == ShapeType.Polygon)
                     {
@@ -124,7 +103,14 @@ namespace SFML_Farseer_Network
                             vertices[i] = MathUtils.Mul(ref xf, polygonShape.Vertices[i]);
                         }
 
-                        DrawPolygon(vertices, count, 1f, 1f, 1f);
+                        if (body.BodyType == BodyType.Static)
+                        {
+                            DrawPolygon(vertices, count, ref _staticColor);
+                        }
+                        else
+                        {
+                            DrawPolygon(vertices, count, ref _dynamicColor);
+                        }
                     }
                 }
             }
