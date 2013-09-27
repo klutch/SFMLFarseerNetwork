@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using SFML.Graphics;
 using SFML.Window;
 using SFML_Farseer_Network.Managers;
@@ -34,10 +35,8 @@ namespace SFML_Farseer_Network
         private string _ipAddressValue;
         private Stopwatch _stopwatch;
         private float _targetDt = 1f / 60f;
-        private float _fps = 0;
+        private int _fps = 0;
         private Text _fpsText;
-
-        public float fps { get { return _fps; } }
 
         public PhysicsManager physicsManager { get { return _physicsManager; } }
         public RenderWindow window { get { return _window; } }
@@ -93,25 +92,49 @@ namespace SFML_Farseer_Network
 
             _fpsText = new Text("FPS: 0", _font, 18);
             _fpsText.Color = Color.Red;
-            _fpsText.Position = new Vector2f(680, 8);
+            _fpsText.Position = new Vector2f(700, 16);
         }
 
         public void run()
         {
-            float lastTime = 0;
+            float updateTime = 0f;
+            float frameTime = 0f;
+            bool drawn = false;
+            int frameCount = 0;
 
             _stopwatch.Start();
             while (_window.IsOpen())
             {
-                float currentTime;
+                float currentTime = (float)_stopwatch.Elapsed.TotalSeconds;
 
-                update();
-                draw();
-
-                currentTime = (float)_stopwatch.Elapsed.TotalSeconds;
+                updateTime += currentTime;
+                frameTime += currentTime;
                 _stopwatch.Restart();
-                _fps = 1f / currentTime;
-                lastTime = currentTime;
+
+                while (updateTime >= _targetDt)
+                {
+                    update();
+                    updateTime -= _targetDt;
+                    drawn = false;
+                    frameCount++;
+                }
+
+                if (drawn)
+                {
+                    Thread.Sleep(1);
+                }
+                else
+                {
+                    draw();
+                    drawn = true;
+                }
+
+                if (frameTime >= 1)
+                {
+                    _fps = frameCount;
+                    frameCount = 0;
+                    frameTime -= 1;
+                }
             }
         }
 
