@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Lidgren.Network;
 
-namespace SFML_Farseer_Network
+namespace SFML_Farseer_Network.Managers
 {
     public enum NetRole
     {

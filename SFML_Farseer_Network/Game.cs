@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using SFML.Graphics;
 using SFML.Window;
+using SFML_Farseer_Network.Managers;
 
 namespace SFML_Farseer_Network
 {
@@ -25,6 +26,8 @@ namespace SFML_Farseer_Network
         private KeyboardState _newKeyState;
         private KeyboardState _oldKeyState;
         private NetManager _netManager;
+        private PhysicsManager _physicsManager;
+        private CameraManager _cameraManager;
         private Text _ipPrompt;
         private Text _ipAddressText;
         private string _ipAddressValue;
@@ -35,7 +38,7 @@ namespace SFML_Farseer_Network
             _window = new RenderWindow(new VideoMode(800, 600), "Farseer Network Test");
             _window.Closed += new EventHandler(_window_Closed);
             _netManager = new NetManager(this);
-            _ipAddressValue = "";
+            _ipAddressValue = "127.0.0.1";
 
             loadContent();
         }
@@ -95,6 +98,14 @@ namespace SFML_Farseer_Network
             _messages.Add(text);
         }
 
+        public void startGame()
+        {
+            addMessage("Starting game...");
+            _state = GameState.Ready;
+            _cameraManager = new CameraManager(this);
+            _physicsManager = new PhysicsManager(this);
+        }
+
         public void update()
         {
             _window.DispatchEvents();
@@ -149,23 +160,21 @@ namespace SFML_Farseer_Network
                         if (_newKeyState.isPressed(Key.Return) && _oldKeyState.isReleased(Key.Return))
                         {
                             _netManager.connectTo(_ipAddressValue);
-                            addMessage("Attempting to connect to " + _ipAddressValue + ":3456");
+                            addMessage("Attempting to connect to " + _ipAddressValue + ":3456...");
                         }
 
                         _ipAddressText.DisplayedString = _ipAddressValue;
                     }
                     else
                     {
-                        _state = GameState.Ready;
-                        addMessage("Game is ready.");
+                        startGame();
                     }
                 }
                 else    // NetRole.Server
                 {
                     if (_netManager.connected)
                     {
-                        _state = GameState.Ready;
-                        addMessage("Game is ready.");
+                        startGame();
                     }
                 }
             }

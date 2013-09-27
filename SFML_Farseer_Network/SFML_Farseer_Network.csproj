@@ -88,8 +88,9 @@
   <ItemGroup>
     <Compile Include="Game.cs" />
     <Compile Include="KeyboardState.cs" />
-    <Compile Include="NetManager.cs" />
-    <Compile Include="PhysicsManager.cs" />
+    <Compile Include="Managers\CameraManager.cs" />
+    <Compile Include="Managers\NetManager.cs" />
+    <Compile Include="Managers\PhysicsManager.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
