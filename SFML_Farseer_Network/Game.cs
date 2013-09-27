@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using SFML.Graphics;
 using SFML.Window;
 using SFML_Farseer_Network.Managers;
@@ -31,6 +32,12 @@ namespace SFML_Farseer_Network
         private Text _ipPrompt;
         private Text _ipAddressText;
         private string _ipAddressValue;
+        private Stopwatch _stopwatch;
+        private float _targetDt = 1f / 60f;
+        private float _fps = 0;
+        private Text _fpsText;
+
+        public float fps { get { return _fps; } }
 
         public PhysicsManager physicsManager { get { return _physicsManager; } }
         public RenderWindow window { get { return _window; } }
@@ -42,6 +49,7 @@ namespace SFML_Farseer_Network
             _window.Closed += new EventHandler(_window_Closed);
             _netManager = new NetManager(this);
             _ipAddressValue = "127.0.0.1";
+            _stopwatch = new Stopwatch();
 
             loadContent();
         }
@@ -82,14 +90,28 @@ namespace SFML_Farseer_Network
             _ipAddressText = new Text("", _font, 18);
             _ipAddressText.Position = new Vector2f(340, 332);
             _ipAddressText.Color = Color.Green;
+
+            _fpsText = new Text("FPS: 0", _font, 18);
+            _fpsText.Color = Color.Red;
+            _fpsText.Position = new Vector2f(680, 8);
         }
 
         public void run()
         {
+            float lastTime = 0;
+
+            _stopwatch.Start();
             while (_window.IsOpen())
             {
+                float currentTime;
+
                 update();
                 draw();
+
+                currentTime = (float)_stopwatch.Elapsed.TotalSeconds;
+                _stopwatch.Restart();
+                _fps = 1f / currentTime;
+                lastTime = currentTime;
             }
         }
 
@@ -185,6 +207,9 @@ namespace SFML_Farseer_Network
             {
                 _physicsManager.update();
             }
+
+            // FPS
+            _fpsText.DisplayedString = "FPS: " + _fps.ToString();
         }
 
         public void draw()
@@ -227,6 +252,9 @@ namespace SFML_Farseer_Network
                 message.Position = position;
                 _window.Draw(message);
             }
+
+            // Draw FPS
+            _window.Draw(_fpsText);
 
             _window.Display();
         }
