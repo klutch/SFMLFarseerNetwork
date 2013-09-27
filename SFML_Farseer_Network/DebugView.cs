@@ -30,8 +30,8 @@ namespace SFML_Farseer_Network
             _physicsManager = physicsManager;
             _triangleVertices = new VertexArray(PrimitiveType.Triangles);
             _lineVertices = new VertexArray(PrimitiveType.Lines);
-            _staticColor = new Color(50, 150, 50);
-            _dynamicColor = new Color(50, 50, 150);
+            _staticColor = new Color(100, 150, 100);
+            _dynamicColor = new Color(100, 100, 150);
         }
 
         public void DrawCircle(Vector2 center, float radius, ref Color color)
@@ -39,6 +39,8 @@ namespace SFML_Farseer_Network
             CircleShape circle = new CircleShape(radius);
 
             circle.Position = new Vector2f(center.X, center.Y);
+            circle.Origin = new Vector2f(radius, radius);
+            circle.FillColor = color;
             _game.window.Draw(circle);
         }
 
@@ -79,15 +81,15 @@ namespace SFML_Farseer_Network
                     if (shape.ShapeType == ShapeType.Circle)
                     {
                         FCircleShape circleShape = shape as FCircleShape;
-                        Vector2 position = body.GetWorldVector(circleShape.Position);
+                        //Vector2 position = body.GetWorldVector(circleShape.Position);
 
                         if (body.BodyType == BodyType.Static)
                         {
-                            DrawCircle(position, circleShape.Radius, ref _staticColor);
+                            DrawCircle(body.Position, circleShape.Radius, ref _staticColor);
                         }
                         else
                         {
-                            DrawCircle(position, circleShape.Radius, ref _dynamicColor);
+                            DrawCircle(body.Position, circleShape.Radius, ref _dynamicColor);
                         }
                     }
                     else if (shape.ShapeType == ShapeType.Polygon)
