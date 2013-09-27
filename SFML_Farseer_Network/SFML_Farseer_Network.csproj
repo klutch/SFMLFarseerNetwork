@@ -37,6 +37,13 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FarseerPhysics">
+      <HintPath>..\..\Farseer Physics Engine 3.5\bin\Release\FarseerPhysics.dll</HintPath>
+    </Reference>
+    <Reference Include="Lidgren.Network, Version=2011.3.12.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lidgren-network-gen3\Lidgren.Network\bin\Release\Lidgren.Network.dll</HintPath>
+    </Reference>
     <Reference Include="sfmlnet-audio-2">
       <HintPath>..\..\SFML.Net-2.1-32 - bin\lib\sfmlnet-audio-2.dll</HintPath>
     </Reference>
@@ -80,6 +87,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Game.cs" />
+    <Compile Include="KeyboardState.cs" />
+    <Compile Include="NetManager.cs" />
+    <Compile Include="PhysicsManager.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
