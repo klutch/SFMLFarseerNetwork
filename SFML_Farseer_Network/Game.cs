@@ -37,6 +37,7 @@ namespace SFML_Farseer_Network
         private float _targetDt = 1f / 60f;
         private int _fps = 0;
         private Text _fpsText;
+        private bool _inFocus = true;
 
         public PhysicsManager physicsManager { get { return _physicsManager; } }
         public RenderWindow window { get { return _window; } }
@@ -46,11 +47,23 @@ namespace SFML_Farseer_Network
             _state = GameState.Setup;
             _window = new RenderWindow(new VideoMode(800, 600), "Farseer Network Test");
             _window.Closed += new EventHandler(_window_Closed);
+            _window.GainedFocus += new EventHandler(_window_GainedFocus);
+            _window.LostFocus += new EventHandler(_window_LostFocus);
             _netManager = new NetManager(this);
             _ipAddressValue = "127.0.0.1";
             _stopwatch = new Stopwatch();
 
             loadContent();
+        }
+
+        void _window_LostFocus(object sender, EventArgs e)
+        {
+            _inFocus = false;
+        }
+
+        void _window_GainedFocus(object sender, EventArgs e)
+        {
+            _inFocus = true;
         }
 
         void _window_Closed(object sender, EventArgs e)
@@ -162,22 +175,25 @@ namespace SFML_Farseer_Network
 
             if (_state == GameState.Setup)
             {
-                if (_newKeyState.isPressed(Key.Num1) && _oldKeyState.isReleased(Key.Num1))
+                if (_inFocus)
                 {
-                    _netManager.startClient();
-                    _state = GameState.Waiting;
-                }
-                else if (_newKeyState.isPressed(Key.Num2) && _oldKeyState.isReleased(Key.Num2))
-                {
-                    _netManager.startServer();
-                    _state = GameState.Waiting;
+                    if (_newKeyState.isPressed(Key.Num1) && _oldKeyState.isReleased(Key.Num1))
+                    {
+                        _netManager.startClient();
+                        _state = GameState.Waiting;
+                    }
+                    else if (_newKeyState.isPressed(Key.Num2) && _oldKeyState.isReleased(Key.Num2))
+                    {
+                        _netManager.startServer();
+                        _state = GameState.Waiting;
+                    }
                 }
             }
             else if (_state == GameState.Waiting)
             {
                 if (_netManager.role == NetRole.Client)
                 {
-                    if (!_netManager.connected)
+                    if (_inFocus && !_netManager.connected)
                     {
                         // 0-9
                         for (int i = 0; i < 10; i++)
