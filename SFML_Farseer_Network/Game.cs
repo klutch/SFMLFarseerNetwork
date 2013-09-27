@@ -32,6 +32,9 @@ namespace SFML_Farseer_Network
         private Text _ipAddressText;
         private string _ipAddressValue;
 
+        public PhysicsManager physicsManager { get { return _physicsManager; } }
+        public RenderWindow window { get { return _window; } }
+
         public Game()
         {
             _state = GameState.Setup;
@@ -180,25 +183,13 @@ namespace SFML_Farseer_Network
             }
             else if (_state == GameState.Ready)
             {
+                _physicsManager.update();
             }
         }
 
         public void draw()
         {
             _window.Clear(Color.Black);
-
-            // Draw title
-            _window.Draw(_title);
-
-            // Draw messages
-            for (int i = _messages.Count - 1; i >= 0; i--)
-            {
-                Vector2f position = new Vector2f(16, (i + 1) * 16 + 32);
-                Text message = _messages[i];
-
-                message.Position = position;
-                _window.Draw(message);
-            }
 
             if (_state == GameState.Setup)
             {
@@ -219,6 +210,22 @@ namespace SFML_Farseer_Network
             }
             else if (_state == GameState.Ready)
             {
+                _window.SetView(_cameraManager.worldView);
+                _physicsManager.drawDebugView();
+                _window.SetView(_window.DefaultView);
+            }
+
+            // Draw title
+            _window.Draw(_title);
+
+            // Draw messages
+            for (int i = _messages.Count - 1; i >= 0; i--)
+            {
+                Vector2f position = new Vector2f(16, (i + 1) * 16 + 32);
+                Text message = _messages[i];
+
+                message.Position = position;
+                _window.Draw(message);
             }
 
             _window.Display();
