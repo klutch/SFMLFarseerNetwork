@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using Lidgren.Network;
 using FarseerPhysics.Dynamics;
+using FarseerPhysics.Dynamics.Joints;
+using FarseerPhysics.Factories;
 
 namespace SFML_Farseer_Network.Managers
 {
+    using Vector2 = Microsoft.Xna.Framework.Vector2;
+
     public enum NetRole
     {
         Undefined,
@@ -14,7 +18,10 @@ namespace SFML_Farseer_Network.Managers
 
     public enum MessageType
     {
-        UpdateDynamicBodies
+        UpdateDynamicBodies,
+        CreateMouseJoint,
+        MoveMouseJoint,
+        DestroyMouseJoint
     };
 
     public class NetManager
@@ -118,7 +125,19 @@ namespace SFML_Farseer_Network.Managers
 
                             if (messageType == MessageType.UpdateDynamicBodies)
                             {
-                                updateDynamicBodies(im);
+                                receiveDynamicBodiesUpdate(im);
+                            }
+                            else if (messageType == MessageType.CreateMouseJoint)
+                            {
+                                receiveCreateMouseJoint(im);
+                            }
+                            else if (messageType == MessageType.DestroyMouseJoint)
+                            {
+                                receiveDestroyMouseJoint(im);
+                            }
+                            else if (messageType == MessageType.MoveMouseJoint)
+                            {
+                                receiveMoveMouseJoint(im);
                             }
                             break;
                         default:
@@ -140,6 +159,66 @@ namespace SFML_Farseer_Network.Managers
             }
 
             _peer.Shutdown("Bye");
+        }
+
+        public void sendCreateMouseJoint(FixedMouseJoint mouseJoint)
+        {
+            NetOutgoingMessage om = _peer.CreateMessage();
+            Body body = mouseJoint.BodyA;
+            Vector2 localAnchorA = body.GetLocalVector(mouseJoint.WorldAnchorA);
+            Vector2 point = mouseJoint.WorldAnchorB;
+
+            om.Write((int)MessageType.CreateMouseJoint);
+            om.Write((int)body.UserData);   // entityId
+            om.Write(localAnchorA.X);
+            om.Write(localAnchorA.Y);
+            om.Write(point.X);
+            om.Write(point.Y);
+
+            _peer.SendMessage(om, _peer.Connections[0], NetDeliveryMethod.ReliableUnordered);
+        }
+
+        private void receiveCreateMouseJoint(NetIncomingMessage im)
+        {
+            int entityId = im.ReadInt32();
+            Body body = _game.entityManager.getEntity(entityId);
+            Vector2 localAnchorA = new Vector2(im.ReadFloat(), im.ReadFloat());
+            Vector2 point = new Vector2(im.ReadFloat(), im.ReadFloat());
+
+            if (body != null)
+            {
+                _game.physicsManager.createRemoteMouseJoint(body, body.GetWorldVector(ref localAnchorA), point);
+            }
+        }
+
+        public void sendDestroyMouseJoint()
+        {
+            NetOutgoingMessage om = _peer.CreateMessage();
+
+            om.Write((int)MessageType.DestroyMouseJoint);
+            _peer.SendMessage(om, _peer.Connections[0], NetDeliveryMethod.ReliableUnordered);
+        }
+
+        public void receiveDestroyMouseJoint(NetIncomingMessage im)
+        {
+            _game.physicsManager.destroyRemoteMouseJoint();
+        }
+
+        public void sendMoveMouseJoint(FixedMouseJoint joint)
+        {
+            NetOutgoingMessage om = _peer.CreateMessage();
+
+            om.Write((int)MessageType.MoveMouseJoint);
+            om.Write(joint.WorldAnchorB.X);
+            om.Write(joint.WorldAnchorB.Y);
+            _peer.SendMessage(om, _peer.Connections[0], NetDeliveryMethod.ReliableUnordered);
+        }
+
+        public void receiveMoveMouseJoint(NetIncomingMessage im)
+        {
+            Vector2 worldAnchorB = new Vector2(im.ReadFloat(), im.ReadFloat());
+
+            _game.physicsManager.moveRemoteMouseJoint(worldAnchorB);
         }
 
         private void sendDynamicBodies()
@@ -165,7 +244,7 @@ namespace SFML_Farseer_Network.Managers
             _peer.SendMessage(om, _peer.Connections[0], NetDeliveryMethod.Unreliable);
         }
 
-        public void updateDynamicBodies(NetIncomingMessage im)
+        public void receiveDynamicBodiesUpdate(NetIncomingMessage im)
         {
             int entityCount = im.ReadInt32();
 
