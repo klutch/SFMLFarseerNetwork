@@ -93,6 +93,7 @@
     <Compile Include="Managers\EntityManager.cs" />
     <Compile Include="Managers\NetManager.cs" />
     <Compile Include="Managers\PhysicsManager.cs" />
+    <Compile Include="MouseState.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

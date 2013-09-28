@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using FarseerPhysics.Dynamics.Joints;
+using FarseerPhysics.Factories;
+using FarseerPhysics.Dynamics;
 using SFML.Graphics;
 using SFML.Window;
 using SFML_Farseer_Network.Managers;
@@ -9,6 +12,7 @@ using SFML_Farseer_Network.Managers;
 namespace SFML_Farseer_Network
 {
     using Key = Keyboard.Key;
+    using Vector2 = Microsoft.Xna.Framework.Vector2;
 
     public enum GameState
     {
@@ -28,6 +32,8 @@ namespace SFML_Farseer_Network
         private List<Text> _setupOptions;
         private KeyboardState _newKeyState;
         private KeyboardState _oldKeyState;
+        private MouseState _newMouseState;
+        private MouseState _oldMouseState;
         private NetManager _netManager;
         private EntityManager _entityManager;
         private PhysicsManager _physicsManager;
@@ -42,6 +48,7 @@ namespace SFML_Farseer_Network
         private bool _inFocus = true;
         private Vector2f _mouseWorld;
         private CircleShape _mousePointer;
+        private FixedMouseJoint _mouseJoint;
 
         public PhysicsManager physicsManager { get { return _physicsManager; } }
         public EntityManager entityManager { get { return _entityManager; } }
@@ -190,6 +197,8 @@ namespace SFML_Farseer_Network
             _window.DispatchEvents();
             _oldKeyState = _newKeyState;
             _newKeyState = KeyboardState.get();
+            _oldMouseState = _newMouseState;
+            _newMouseState = MouseState.get();
 
             if (_state == GameState.Setup)
             {
@@ -264,9 +273,41 @@ namespace SFML_Farseer_Network
             }
             else if (_state == GameState.Ready)
             {
-                // Mouse
-                _mouseWorld = _window.MapPixelToCoords(_window.InternalGetMousePosition(), _cameraManager.worldView);
+                if (_inFocus)
+                {
+                    // Mouse position
+                    _mouseWorld = _window.MapPixelToCoords(_window.InternalGetMousePosition(), _cameraManager.worldView);
 
+                    // Mouse joint
+                    if (_newMouseState.isLeftButtonPressed)
+                    {
+                        if (_mouseJoint == null)
+                        {
+                            // Create mouse joint
+                            Vector2 point = new Vector2(_mouseWorld.X, _mouseWorld.Y);
+                            Fixture fixture = _physicsManager.world.TestPoint(point);
+
+                            if (fixture != null)
+                            {
+                                _mouseJoint = JointFactory.CreateFixedMouseJoint(_physicsManager.world, fixture.Body, point);
+                                _mouseJoint.MaxForce = 1000f * fixture.Body.Mass;
+                            }
+                        }
+                        else
+                        {
+                            // Update mouse joint
+                            _mouseJoint.WorldAnchorB = new Vector2(_mouseWorld.X, _mouseWorld.Y);
+                        }
+                    }
+                    else if (!_newMouseState.isLeftButtonPressed && _mouseJoint != null)
+                    {
+                        // Destroy mouse joint
+                        _physicsManager.world.RemoveJoint(_mouseJoint);
+                        _mouseJoint = null;
+                    }
+                }
+
+                // Manager updates
                 _netManager.update();
                 _physicsManager.update();
             }
