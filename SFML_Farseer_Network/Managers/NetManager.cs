@@ -239,6 +239,7 @@ namespace SFML_Farseer_Network.Managers
                 om.Write(body.LinearVelocity.X);
                 om.Write(body.LinearVelocity.Y);
                 om.Write(body.Rotation);
+                om.Write(body.AngularVelocity);
             }
 
             _peer.SendMessage(om, _peer.Connections[0], NetDeliveryMethod.Unreliable);
@@ -258,6 +259,7 @@ namespace SFML_Farseer_Network.Managers
                 float velocityX = im.ReadFloat();
                 float velocityY = im.ReadFloat();
                 float angle = im.ReadFloat();
+                float angularVelocity = im.ReadFloat();
                 Body body = _game.entityManager.getEntity(entityId);
 
                 if (body != null)
@@ -265,6 +267,7 @@ namespace SFML_Farseer_Network.Managers
                     body.Position = new Microsoft.Xna.Framework.Vector2(positionX, positionY);
                     body.LinearVelocity = new Microsoft.Xna.Framework.Vector2(velocityX, velocityY);
                     body.Rotation = angle;
+                    body.AngularVelocity = angularVelocity;
                 }
             }
         }

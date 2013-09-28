@@ -45,7 +45,7 @@ namespace SFML_Farseer_Network.Managers
 
                     body.BodyType = BodyType.Dynamic;
                     body.UserData = entityId;
-                    body.Restitution = 0.2f;
+                    body.Restitution = 0.5f;
                 }
                 else
                 {
@@ -57,7 +57,7 @@ namespace SFML_Farseer_Network.Managers
                     body.Rotation = (float)(_rng.NextDouble() * 6.28 - 3.14);
                     body.BodyType = BodyType.Dynamic;
                     body.UserData = entityId;
-                    body.Restitution = 0.2f;
+                    body.Restitution = 0.5f;
                 }
             }
         }
