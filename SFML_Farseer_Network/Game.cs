@@ -19,6 +19,7 @@ namespace SFML_Farseer_Network
 
     public class Game : IDisposable
     {
+        public const int MAX_MESSAGES = 20;
         private RenderWindow _window;
         private Font _font;
         private Text _title;
@@ -43,6 +44,7 @@ namespace SFML_Farseer_Network
         public PhysicsManager physicsManager { get { return _physicsManager; } }
         public EntityManager entityManager { get { return _entityManager; } }
         public RenderWindow window { get { return _window; } }
+        public GameState state { get { return _state; } }
 
         public Game()
         {
@@ -158,6 +160,12 @@ namespace SFML_Farseer_Network
             Text text = new Text(str, _font, 14);
 
             text.Color = Color.Yellow;
+
+            if (_messages.Count >= MAX_MESSAGES)
+            {
+                _messages.RemoveAt(0);
+            }
+
             _messages.Add(text);
         }
 
@@ -244,9 +252,12 @@ namespace SFML_Farseer_Network
                         startGame();
                     }
                 }
+
+                _netManager.update();
             }
             else if (_state == GameState.Ready)
             {
+                _netManager.update();
                 _physicsManager.update();
             }
 
@@ -272,8 +283,6 @@ namespace SFML_Farseer_Network
                     _window.Draw(_ipPrompt);
                     _window.Draw(_ipAddressText);
                 }
-
-                _netManager.processIncomingMessages();
             }
             else if (_state == GameState.Ready)
             {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Lidgren.Network;
+using FarseerPhysics.Dynamics;
 
 namespace SFML_Farseer_Network.Managers
 {
@@ -11,11 +12,18 @@ namespace SFML_Farseer_Network.Managers
         Client
     };
 
+    public enum MessageType
+    {
+        UpdateDynamicBodies
+    };
+
     public class NetManager
     {
+        public const int SEND_DYNAMIC_BODIES_INTERVAL = 60;
         private Game _game;
         private NetRole _role;
         private NetPeer _peer;
+        private int _sendDynamicBodiesCounter = 0;
 
         public NetRole role { get { return _role; } }
         public bool connected
@@ -69,7 +77,7 @@ namespace SFML_Farseer_Network.Managers
             _peer.Connect(ip, 3456);
         }
 
-        public void processIncomingMessages()
+        private void processIncomingMessages()
         {
             if (_peer != null)
             {
@@ -105,6 +113,14 @@ namespace SFML_Farseer_Network.Managers
                                 _game.addMessage(status.ToString() + ": " + im.ReadString());
                             }
                             break;
+                        case NetIncomingMessageType.Data:
+                            MessageType messageType = (MessageType)im.ReadInt32();
+
+                            if (messageType == MessageType.UpdateDynamicBodies)
+                            {
+                                updateDynamicBodies(im);
+                            }
+                            break;
                         default:
                             _game.addMessage("Unhandled message type: " + im.MessageType);
                             break;
@@ -124,6 +140,74 @@ namespace SFML_Farseer_Network.Managers
             }
 
             _peer.Shutdown("Bye");
+        }
+
+        private void sendDynamicBodies()
+        {
+            NetOutgoingMessage om = _peer.CreateMessage();
+
+            om.Write((int)MessageType.UpdateDynamicBodies);
+            om.Write(_game.entityManager.entities.Count);
+
+            foreach (KeyValuePair<int, Body> entity in _game.entityManager.entities)
+            {
+                int entityId = entity.Key;
+                Body body = entity.Value;
+
+                om.Write(entityId);
+                om.Write(body.Position.X);
+                om.Write(body.Position.Y);
+                om.Write(body.LinearVelocity.X);
+                om.Write(body.LinearVelocity.Y);
+                om.Write(body.Rotation);
+            }
+
+            _peer.SendMessage(om, _peer.Connections[0], NetDeliveryMethod.Unreliable);
+        }
+
+        public void updateDynamicBodies(NetIncomingMessage im)
+        {
+            int entityCount = im.ReadInt32();
+
+            _game.addMessage(String.Format("Received updates for {0} entities.", entityCount));
+
+            for (int i = 0; i < entityCount; i++)
+            {
+                int entityId = im.ReadInt32();
+                float positionX = im.ReadFloat();
+                float positionY = im.ReadFloat();
+                float velocityX = im.ReadFloat();
+                float velocityY = im.ReadFloat();
+                float angle = im.ReadFloat();
+                Body body = _game.entityManager.getEntity(entityId);
+
+                if (body != null)
+                {
+                    body.Position = new Microsoft.Xna.Framework.Vector2(positionX, positionY);
+                    body.LinearVelocity = new Microsoft.Xna.Framework.Vector2(velocityX, velocityY);
+                    body.Rotation = angle;
+                }
+            }
+        }
+
+        public void update()
+        {
+            processIncomingMessages();
+
+            if (_game.state == GameState.Ready)
+            {
+                if (_role == NetRole.Server)
+                {
+                    if (_sendDynamicBodiesCounter >= SEND_DYNAMIC_BODIES_INTERVAL)
+                    {
+                        _sendDynamicBodiesCounter = 0;
+                        sendDynamicBodies();
+                        _game.addMessage("Sent dynamic body info.");
+                    }
+
+                    _sendDynamicBodiesCounter++;
+                }
+            }
         }
     }
 }

@@ -9,6 +9,8 @@ namespace SFML_Farseer_Network.Managers
         private Game _game;
         private Dictionary<int, Body> _entities;
 
+        public Dictionary<int, Body> entities { get { return _entities; } }
+
         public EntityManager(Game game)
         {
             _game = game;
@@ -30,6 +32,14 @@ namespace SFML_Farseer_Network.Managers
                     return current;
                 }
             }
+        }
+
+        public Body getEntity(int entityId)
+        {
+            Body body;
+
+            _entities.TryGetValue(entityId, out body);
+            return body;
         }
 
         public int createEntity(Body body)
