@@ -28,6 +28,7 @@ namespace SFML_Farseer_Network
         private KeyboardState _newKeyState;
         private KeyboardState _oldKeyState;
         private NetManager _netManager;
+        private EntityManager _entityManager;
         private PhysicsManager _physicsManager;
         private CameraManager _cameraManager;
         private Text _ipPrompt;
@@ -40,6 +41,7 @@ namespace SFML_Farseer_Network
         private bool _inFocus = true;
 
         public PhysicsManager physicsManager { get { return _physicsManager; } }
+        public EntityManager entityManager { get { return _entityManager; } }
         public RenderWindow window { get { return _window; } }
 
         public Game()
@@ -163,6 +165,7 @@ namespace SFML_Farseer_Network
         {
             addMessage("Starting game...");
             _state = GameState.Ready;
+            _entityManager = new EntityManager(this);
             _cameraManager = new CameraManager(this);
             _physicsManager = new PhysicsManager(this);
         }

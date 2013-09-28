@@ -90,6 +90,7 @@
     <Compile Include="Game.cs" />
     <Compile Include="KeyboardState.cs" />
     <Compile Include="Managers\CameraManager.cs" />
+    <Compile Include="Managers\EntityManager.cs" />
     <Compile Include="Managers\NetManager.cs" />
     <Compile Include="Managers\PhysicsManager.cs" />
     <Compile Include="Program.cs" />

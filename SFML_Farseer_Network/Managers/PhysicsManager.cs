@@ -37,17 +37,21 @@ namespace SFML_Farseer_Network.Managers
                 {
                     float radius = (float)(_rng.NextDouble() * 2 + 1);
                     Body body = BodyFactory.CreateCircle(_world, radius, 1f, position);
+                    int entityId = _game.entityManager.createEntity(body);
 
                     body.BodyType = BodyType.Dynamic;
+                    body.UserData = entityId;
                 }
                 else
                 {
                     float width = (float)(_rng.NextDouble() * 2 + 1);
                     float height = (float)(_rng.NextDouble() * 2 + 1);
                     Body body = BodyFactory.CreateRectangle(_world, width, height, 1f, position);
+                    int entityId = _game.entityManager.createEntity(body);
 
                     body.Rotation = (float)(_rng.NextDouble() * 6.28 - 3.14);
                     body.BodyType = BodyType.Dynamic;
+                    body.UserData = entityId;
                 }
             }
         }
