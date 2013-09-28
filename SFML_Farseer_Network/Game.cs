@@ -40,6 +40,8 @@ namespace SFML_Farseer_Network
         private int _fps = 0;
         private Text _fpsText;
         private bool _inFocus = true;
+        private Vector2f _mouseWorld;
+        private CircleShape _mousePointer;
 
         public PhysicsManager physicsManager { get { return _physicsManager; } }
         public EntityManager entityManager { get { return _entityManager; } }
@@ -110,6 +112,11 @@ namespace SFML_Farseer_Network
             _fpsText = new Text("FPS: 0", _font, 18);
             _fpsText.Color = Color.Red;
             _fpsText.Position = new Vector2f(700, 16);
+
+            _mousePointer = new CircleShape(0.1f);
+            _mousePointer.Origin = new Vector2f(0.05f, 0.05f);
+            _mousePointer.FillColor = Color.Yellow;
+            _mousePointer.Position = new Vector2f(-100, -100);
         }
 
         public void run()
@@ -257,6 +264,9 @@ namespace SFML_Farseer_Network
             }
             else if (_state == GameState.Ready)
             {
+                // Mouse
+                _mouseWorld = _window.MapPixelToCoords(_window.InternalGetMousePosition(), _cameraManager.worldView);
+
                 _netManager.update();
                 _physicsManager.update();
             }
@@ -286,8 +296,17 @@ namespace SFML_Farseer_Network
             }
             else if (_state == GameState.Ready)
             {
+                // Switch to world view
                 _window.SetView(_cameraManager.worldView);
+
+                // Box2d debug view
                 _physicsManager.drawDebugView();
+
+                // Mouse pointer
+                _mousePointer.Position = _mouseWorld;
+                _window.Draw(_mousePointer);
+
+                // Restore default view
                 _window.SetView(_window.DefaultView);
             }
 
