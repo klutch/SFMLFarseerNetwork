@@ -26,7 +26,7 @@ namespace SFML_Farseer_Network.Managers
 
     public class NetManager
     {
-        public const int SEND_DYNAMIC_BODIES_INTERVAL = 60;
+        public const int SEND_DYNAMIC_BODIES_INTERVAL = 10;
         private Game _game;
         private NetRole _role;
         private NetPeer _peer;
